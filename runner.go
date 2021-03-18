@@ -8,8 +8,12 @@ import (
 )
 
 func NewRunner() Runner {
-	return &runner{tasks: []taskRunner{}}
+	return &runner{tasks: []runnableTask{}}
 }
+
+var (
+	NoTasksError = errors.New("runner has no tasks")
+)
 
 type Runner interface {
 	AddTask(task Task)             // タスクの追加
@@ -17,7 +21,7 @@ type Runner interface {
 }
 
 type runner struct {
-	tasks []taskRunner
+	tasks []runnableTask
 	mx    sync.Mutex
 }
 
@@ -28,7 +32,7 @@ func (r *runner) AddTask(task Task) {
 
 	r.mx.Lock()
 	defer r.mx.Unlock()
-	r.tasks = append(r.tasks, taskRunner{task: task})
+	r.tasks = append(r.tasks, &taskRunner{task: task})
 }
 
 func (r *runner) Run(ctx context.Context) error {
@@ -45,13 +49,17 @@ func (r *runner) start(ctx context.Context) error {
 	defer r.mx.Unlock()
 
 	if len(r.tasks) == 0 {
-		return errors.New("runner has no tasks")
+		return NoTasksError
 	}
 
 	for _, t := range r.tasks {
 		go t.run(ctx)
 	}
 	return nil
+}
+
+type runnableTask interface {
+	run(ctx context.Context)
 }
 
 type taskRunner struct {
@@ -63,7 +71,7 @@ func (r *taskRunner) run(ctx context.Context) {
 		now := time.Now()
 		next := r.task.NextTime(now)
 		d := next.Sub(now)
-		if d < 0 {
+		if d <= 0 {
 			return
 		}
 
