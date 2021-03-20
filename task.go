@@ -6,6 +6,6 @@ import (
 )
 
 type Task interface {
-	NextTime(now time.Time) time.Time // 次回実行時刻
-	Run(ctx context.Context)          // 実行される処理
+	NextTime(now time.Time) time.Duration // 次回実行時刻までの間隔
+	Run(ctx context.Context)              // 実行される処理
 }

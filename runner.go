@@ -69,8 +69,7 @@ type taskRunner struct {
 func (r *taskRunner) run(ctx context.Context) {
 	for {
 		now := time.Now()
-		next := r.task.NextTime(now)
-		d := next.Sub(now)
+		d := r.task.NextTime(now)
 		if d <= 0 {
 			return
 		}

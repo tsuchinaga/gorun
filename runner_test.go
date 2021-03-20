@@ -134,8 +134,8 @@ type testTask struct {
 	count   int
 }
 
-func (t *testTask) NextTime(now time.Time) time.Time {
-	return now.Add(t.addTime)
+func (t *testTask) NextTime(time.Time) time.Duration {
+	return t.addTime
 }
 func (t *testTask) Run(context.Context) {
 	t.count++
